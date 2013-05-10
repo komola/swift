@@ -62,6 +62,7 @@ class Application(object):
         self.put_queue_depth = int(conf.get('put_queue_depth', 10))
         self.object_chunk_size = int(conf.get('object_chunk_size', 65536))
         self.client_chunk_size = int(conf.get('client_chunk_size', 65536))
+        self.region = int(conf.get('region', 0))
         self.trans_id_suffix = conf.get('trans_id_suffix', '')
         self.error_suppression_interval = \
             int(conf.get('error_suppression_interval', 60))
@@ -277,6 +278,17 @@ class Application(object):
                 timing, expires = self.node_timings.get(node['ip'], (-1.0, 0))
                 return timing if expires > now else -1.0
             nodes.sort(key=key_func)
+
+        if self.region != 0:
+
+            def region_comparer(x, y):
+                if x['region'] == self.region:
+                    return -1
+                else:
+                    return x['region'] < y['region']
+
+            nodes.sort(cmp=region_comparer)
+
         return nodes
 
     def set_node_timing(self, node, timing):
